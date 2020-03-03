@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+cat <<BASH_TAB_COMPLETION
+if command -v complete >/dev/null 2>&1; then
+  _chpg_complete_version() {
+    if [ -d "$CHPG_VERSIONS_DIR" ]; then
+      cur="\${COMP_WORDS[COMP_CWORD]}"
+      versions=\$(\\ls -1 $CHPG_VERSIONS_DIR | sed -e "s/^/@/")
+      cmds=\$(\\ls -1 $(dirname $(readlink `which chpg`)) | grep chpg- | sed -e "s/^chpg-//" | sed -e "s/*$//")
+
+      if [[ \$COMP_CWORD == 1 ]]; then
+        COMPREPLY=( \$(compgen -W "\${cmds} \${versions} --version -f" -- \${cur}) )
+        return 0
+      fi
+
+      if [[ \$COMP_CWORD == 2 ]] && [[ \${COMP_WORDS[1]} == 'help' ]]; then
+        COMPREPLY=( \$(compgen -W "\${cmds}" -- \${cur}) )
+        return 0
+      fi
+
+      if [[ \$COMP_CWORD > 1 ]] && [[ \${COMP_WORDS[1]} == 'init' ]]; then
+        COMPREPLY=( \$(compgen -W "--auto --quiet" -- \${cur}) )
+        return 0
+      fi
+    fi
+  }
+  complete -o default -F _chpg_complete_version chpg
+fi
+BASH_TAB_COMPLETION
+
+for arg in $@; do
+  shift
+  if [ "$arg" = "--quiet" ]; then
+
+    # (optional) silences warnings show when a new version/source is activated
+
+    cat <<QUIET_MODE
+export CHPG_QUIET_MODE=true
+QUIET_MODE
+
+  fi
+
+  if [ "$arg" = "--auto" ]; then
+
+    # (optional) auto mode (update version as you change directories)
+
+    cat <<AUTO_MODE
+export PROMPT_COMMAND="_chpg_auto_activate; $PROMPT_COMMAND"
+AUTO_MODE
+
+  fi
+done
+
+cat <<SOURCE_CHPG
+source `which chpg`
+SOURCE_CHPG
