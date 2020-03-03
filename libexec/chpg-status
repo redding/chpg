@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ -n "$CHPG_SOURCE" ]; then
+  cat <<STATUS
+$CHPG_VERSION ($CHPG_SOURCE)
+STATUS
+fi
+
+exit 0
