@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+
+export CHPG_RELEASE="0.0.1.alpha6"
+
+[ -n "$CHPG_HOME_DIR"     ] || export CHPG_HOME_DIR="$HOME/.chpg"
+[ -n "$CHPG_VERSIONS_DIR" ] || export CHPG_VERSIONS_DIR="/Applications/Postgres.app/Contents/Versions"
+[ -n "$CHPG_VERSION_FILE" ] || export CHPG_VERSION_FILE=".chpg-version"
+[ -n "$CHPG_VERSION"      ] || export CHPG_VERSION=""
+[ -n "$CHPG_SOURCE"       ] || export CHPG_SOURCE=""
+
+_chpg_path_remove () {
+  export PATH="`echo $PATH | awk -v RS=: -v ORS=: '$0 != "'$1'"' | sed 's/:$//'`";
+}
+
+_chpg_unset_env () {
+  _chpg_path_remove "$CHPG_VERSIONS_DIR/$CHPG_VERSION/bin"
+  unset CHPG_VERSION
+  export CHPG_VERSION="" CHPG_SOURCE=""
+}
+
+_chpg_activate () {
+  local VERSION="$CHPG_VERSION" SOURCE="$CHPG_SOURCE" MSG VERSION_FILE
+  warn () { echo -e "$1" >&2; }
+  info () { warn "$1"; }
+  set_env_var () { export $1="$2"; }
+  unset_env_var () { unset $1; }
+  path_prepend () { _chpg_path_remove $1; set_env_var PATH "$1:$PATH"; }
+  set_file_version () { [ -f "$1" ] && VERSION=`head -n 1 $1 | sed 's/ //g'` && SOURCE="from $1"; }
+  search_pwd_and_parents_for () {
+    path="$PWD" path_slashes=${PWD//[^\/]/} num_path_dirs="${#path_slashes}"
+    for (( n=${num_path_dirs}; n>0; --n )) do
+      test -e "$path/$CHPG_VERSION_FILE" && ORIG_OLDPWD="$OLDPWD" && pushd "$path" > /dev/null &&
+        VERSION_FILE="$PWD/$CHPG_VERSION_FILE" && popd > /dev/null && OLDPWD="$ORIG_OLDPWD" && return
+      path="$path/.."
+    done
+  }
+  set_state () { export CHPG_VERSION="$1" CHPG_SOURCE="$2"; }
+  set_env () {
+    local v="$CHPG_VERSION" dv="$CHPG_VERSIONS_DIR/$CHPG_VERSION"
+    [ -h $dv ] && v=$(readlink -n "$dv" | sed 's/\/$//')
+    export CHPG_VERSION="$v"
+    path_prepend "$CHPG_VERSIONS_DIR/$v/bin"
+  }
+
+  # get the requested version
+
+  # from pwd search for a `.chpg-version` file, if present
+  search_pwd_and_parents_for && set_file_version "$VERSION_FILE"
+  # from cli args
+  if [[ $1 =~ ^@ ]]; then
+    # from @<VERSION> string
+    VERSION=$1; VERSION=${VERSION:1}; SOURCE="from command line";
+  elif [ -f "$1" ]; then
+    # from file containing VERSION string
+    local file="$1"
+    [[ ! $1 =~ ^\/ ]] && file="$PWD/$file"
+    set_file_version "$file"
+  fi
+  # from the global $CHPG_HOME_DIR/.chpg-version, if present
+  [ -z "$VERSION" ] && set_file_version "$CHPG_HOME_DIR/$CHPG_VERSION_FILE"
+  # default to the latest Postgres.app version
+  [ -z "$VERSION" ] && VERSION="latest" && SOURCE="default"
+
+  # apply the requested version, if needed
+
+  if [ "$VERSION" != "$CHPG_VERSION" ] || [ "$SOURCE" != "$CHPG_SOURCE" ]; then
+    if [ ! -e "$CHPG_VERSIONS_DIR/$VERSION" ]; then
+      # requested version not available
+      warn "$VERSION was requested ($SOURCE) but is not available.\n\nAvailable Postgres.app versions:"
+      warn "`chpg list`"
+      return 1
+    else
+      # an installed version requested, activate it
+      _chpg_unset_env && set_state "$VERSION" "$SOURCE" && set_env && MSG="Activated Postgres.app-$VERSION"
+    fi
+    [[ ! "$CHPG_QUIET_MODE" == "true" ]] && info "$MSG ($SOURCE)"
+  fi
+  return 0
+}
+
+_chpg_auto_activate () { [[ "$PWD" != "$CHPG_PWD" ]] && export CHPG_PWD="$PWD" && _chpg_activate; }
+
+chpg () {
+  reset () { _chpg_unset_env; _chpg_activate $@; }
+  local cmd_arg="$1" cmd_bin="$(dirname $(readlink `which chpg`))/chpg-$1"
+  if [ -x "$cmd_bin" ]; then
+    shift 1; eval "$cmd_bin $@"
+  else
+    if [ "$1" = "-v" ] || [ "$1" = "--version" ]; then echo "$CHPG_RELEASE"
+    elif [ "$1" = "-h" ] || [ "$1" = "--help" ];  then eval "chpg help"
+    elif [ "$1" = "-f" ]; then reset $2
+    elif [ "$1" = "@"  ]; then reset
+    elif [[ $1 =~ ^@ ]];  then reset $@
+    elif [ -z $1 ];       then eval "chpg status"
+    else echo "chpg: no such command \`$cmd_arg'" >&2
+    fi
+  fi
+}
+
+chpg $@
