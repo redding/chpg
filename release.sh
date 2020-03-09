@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CHPG_RELEASE="0.0.1.beta1"
+CHPG_RELEASE="0.1.0"
 
 # check uncommitted changes
 

@@ -3,7 +3,7 @@
 set -e
 
 CHPG_HOME_DIR="$HOME/.chpg"
-CHPG_RELEASE="0.0.1.beta1"
+CHPG_RELEASE="0.1.0"
 
 # make sure the bin path is in place
 

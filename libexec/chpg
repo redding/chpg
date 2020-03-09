@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export CHPG_RELEASE="0.0.1.beta1"
+export CHPG_RELEASE="0.1.0"
 
 [ -n "$CHPG_HOME_DIR"     ] || export CHPG_HOME_DIR="$HOME/.chpg"
 [ -n "$CHPG_VERSIONS_DIR" ] || export CHPG_VERSIONS_DIR="/Applications/Postgres.app/Contents/Versions"
