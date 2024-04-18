@@ -13,8 +13,10 @@ $ chpg help
 
 Open a terminal and run this command ([view source](http://git.io/chpg--install)):
 
+(change PREFIX as needed; it defaults to `/usr/local`)
+
 ```
-$ curl -L http://git.io/chpg--install | sh
+$ curl -L http://git.io/chpg--install | PREFIX=/usr/local sh
 ```
 
 ### Init
