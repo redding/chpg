@@ -97,4 +97,4 @@ chpg () {
   fi
 }
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && chpg $@
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && chpg $@ || true
