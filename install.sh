@@ -25,6 +25,10 @@ CHPG_RELEASE="0.1.2"
 
       ln -sf "$CHPG_HOME_DIR/libexec/chpg" "$BIN_PATH"
 
+# generate shims for any installed Postgres.app versions (safe if none)
+
+      "$CHPG_HOME_DIR/libexec/chpg-reshim" || true
+
 # done!
 
       echo "Installed at ${BIN_PATH}/chpg"
