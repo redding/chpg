@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "${BASH_SOURCE[0]}")/_chpg-resolve"
+
+program="${1:?usage: chpg which COMMAND}"
+_chpg_resolve_version
+root="$(_chpg_resolved_root "$CHPG_RESOLVED_VERSION")"
+
+[ -x "$root/bin/$program" ] && { echo "$root/bin/$program"; exit 0; }
+
+target="$(PATH="$(_chpg_path_without_shims)" command -v "$program" 2>/dev/null || true)"
+[ -n "$target" ] && { echo "$target"; exit 0; }
+
+echo "chpg: $program: command not found" >&2
+_chpg_not_found_hint "$program"
+exit 127

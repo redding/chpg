@@ -51,6 +51,10 @@ AUTO_MODE
   fi
 done
 
+cat <<SHIMS_PATH
+export PATH="$CHPG_HOME_DIR/shims:\$PATH"
+SHIMS_PATH
+
 cat <<SOURCE_CHPG
 source `which chpg`
 SOURCE_CHPG

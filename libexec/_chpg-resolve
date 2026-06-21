@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+# Shared resolver for chpg shims. Sourced, never executed directly.
+# Self-sufficient: does not require libexec/chpg to be sourced.
+
+: "${CHPG_HOME_DIR:=$HOME/.chpg}"
+: "${CHPG_VERSIONS_DIR:=/Applications/Postgres.app/Contents/Versions}"
+: "${CHPG_VERSION_FILE:=.chpg-version}"
+
+# Resolve version + source for the current $PWD (and optional CLI arg:
+# `@<version>` or a version FILE path). Sets CHPG_RESOLVED_VERSION /
+# CHPG_RESOLVED_SOURCE. Default is "latest" (mirrors _chpg_activate).
+_chpg_resolve_version () {
+  local arg="$1" version="" source="" path
+
+  path="$PWD"
+  while [ -n "$path" ]; do
+    if [ -f "$path/$CHPG_VERSION_FILE" ]; then
+      read -r version < "$path/$CHPG_VERSION_FILE"
+      version="${version//[[:space:]]/}"
+      source="from $path/$CHPG_VERSION_FILE"
+      break
+    fi
+    [ "$path" = "/" ] && break
+    path="${path%/*}"; [ -z "$path" ] && path="/"
+  done
+
+  if [[ "$arg" == @* ]]; then
+    version="${arg:1}"; source="from command line"
+  elif [ -n "$arg" ] && [ -f "$arg" ]; then
+    read -r version < "$arg"
+    version="${version//[[:space:]]/}"; source="from $arg"
+  fi
+
+  if [ -z "$version" ] && [ -f "$CHPG_HOME_DIR/$CHPG_VERSION_FILE" ]; then
+    read -r version < "$CHPG_HOME_DIR/$CHPG_VERSION_FILE"
+    version="${version//[[:space:]]/}"
+    source="from $CHPG_HOME_DIR/$CHPG_VERSION_FILE"
+  fi
+  [ -z "$version" ] && { version="latest"; source="default"; }
+
+  CHPG_RESOLVED_VERSION="$version"
+  CHPG_RESOLVED_SOURCE="$source"
+}
+
+# Echo the on-disk root for a version (resolving a symlinked dir).
+_chpg_resolved_root () {
+  local v="$1" dv="$CHPG_VERSIONS_DIR/$1"
+  [ -h "$dv" ] && v="$(readlink -n "$dv" | sed 's:/$::')"
+  printf '%s' "$CHPG_VERSIONS_DIR/$v"
+}
+
+# Export CHPG_VERSION and prepend the version's bin to PATH. Mirrors
+# set_env in libexec/chpg.
+_chpg_apply_env () {
+  local v="$CHPG_RESOLVED_VERSION" dv="$CHPG_VERSIONS_DIR/$CHPG_RESOLVED_VERSION"
+  [ -h "$dv" ] && v="$(readlink -n "$dv" | sed 's:/$::')"
+  export CHPG_VERSION="$v"
+  export PATH="$CHPG_VERSIONS_DIR/$v/bin:$PATH"
+}
+
+# Echo $PATH with the chpg shims dir removed (fallback search, no self-recursion).
+_chpg_path_without_shims () {
+  printf '%s' "$PATH" \
+    | awk -v RS=: -v ORS=: -v d="$CHPG_HOME_DIR/shims" '$0 != d' \
+    | sed 's/:$//'
+}
+
+# Print the "exists in these versions" hint to stderr.
+_chpg_not_found_hint () {
+  local program="$1" vdir v found=()
+  for vdir in "$CHPG_VERSIONS_DIR"/*/; do
+    [ -d "$vdir" ] || continue
+    v="$(basename "$vdir")"
+    [ -x "$vdir/bin/$program" ] && found+=("$v")
+  done
+  if [ "${#found[@]}" -gt 0 ]; then
+    echo "" >&2
+    echo "The \`$program' command exists in these Postgres versions:" >&2
+    printf '  %s\n' "${found[@]}" >&2
+  fi
+}
