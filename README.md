@@ -43,6 +43,12 @@ By default, chpg outputs a warning saying which version/source it activates. If 
 eval "$(chpg init --quiet)"
 ```
 
+## Shims
+
+`chpg` installs lightweight **shims** (in `$HOME/.chpg/shims`, added to your `PATH` by `chpg init`) for every executable across your installed Postgres.app versions. A shim resolves the correct version from the nearest `.chpg-version` at **run time**, so bare commands — `psql`, `pg_dump`, `createdb`, `pg_config`, … — use the right version in any shell, including non-interactive ones (scripts, cron, AI agents). No `chpg @` prefix required.
+
+Shims regenerate on install. Run `chpg reshim` after adding or removing a Postgres.app version. Use `chpg which COMMAND` to see the real path a command resolves to, and `chpg resolve` for the version that applies in the current directory.
+
 ## Usage
 
 ```
