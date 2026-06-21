@@ -11,12 +11,12 @@ $ chpg help
 
 ## Install
 
-Open a terminal and run this command ([view source](http://git.io/chpg--install)):
+Open a terminal and run this command ([view source](https://raw.githubusercontent.com/redding/chpg/main/install.sh)):
 
 (change PREFIX as needed; it defaults to `/usr/local`)
 
 ```
-$ curl -L http://git.io/chpg--install | PREFIX=/usr/local sh
+$ curl -L https://raw.githubusercontent.com/redding/chpg/main/install.sh | PREFIX=/usr/local sh
 ```
 
 ### Init
@@ -29,7 +29,7 @@ eval "$(chpg init)"
 
 ### Auto Mode
 
-(optional) If you want automatic handling, add the `--auto` flag to the init.  In additon to the normal init above, `$PROMPT_COMMAND` is updated to activate any new Postgres.app version as you change directories.  **Again, this is optional.**
+(optional) If you want automatic handling, add the `--auto` flag to the init.  In addition to the normal init above, `$PROMPT_COMMAND` is updated to activate any new Postgres.app version as you change directories.  **Again, this is optional.**
 
 ```bash
 eval "$(chpg init --auto)"
@@ -74,10 +74,10 @@ $ pg_dump --version # will use /Applications/Postgres.app/Contents/Versions/12/b
 
 ## Uninstall
 
-Open a terminal and run this command ([view source](http://git.io/chpg--uninstall)):
+Open a terminal and run this command ([view source](https://raw.githubusercontent.com/redding/chpg/main/uninstall.sh)):
 
 ```
-$ curl -L http://git.io/chpg--uninstall | sh
+$ curl -L https://raw.githubusercontent.com/redding/chpg/main/uninstall.sh | sh
 ```
 
 ## Contributing
