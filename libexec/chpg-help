@@ -8,6 +8,9 @@ if [ -z $command ]; then
 
 usage: chpg @[<version>]
        chpg -f FILE
+       chpg reshim
+       chpg which COMMAND
+       chpg resolve
        chpg help [CMD]
        chpg status
        chpg list
@@ -21,7 +24,34 @@ USAGE
 
 else
 
-  if [[ "$command" == "help" ]]; then
+  if [[ "$command" == "reshim" ]]; then
+
+    cat <<USAGE
+Regenerate shims for all installed Postgres.app versions.
+
+usage: chpg reshim
+USAGE
+    exit 0
+
+  elif [[ "$command" == "which" ]]; then
+
+    cat <<USAGE
+Print the real path the given command resolves to in the current dir.
+
+usage: chpg which COMMAND
+USAGE
+    exit 0
+
+  elif [[ "$command" == "resolve" ]]; then
+
+    cat <<USAGE
+Print the Postgres version + source that applies in the current dir.
+
+usage: chpg resolve
+USAGE
+    exit 0
+
+  elif [[ "$command" == "help" ]]; then
 
     cat <<USAGE
 Print command usage info.

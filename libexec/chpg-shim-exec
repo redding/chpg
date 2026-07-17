@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -e
+[ -n "$CHPG_DEBUG" ] && set -x
+
+source "$(dirname "${BASH_SOURCE[0]}")/_chpg-resolve"
+
+program="${1:?chpg-shim-exec: a program name is required}"; shift
+
+_chpg_resolve_version
+
+target=""
+root="$(_chpg_resolved_root "$CHPG_RESOLVED_VERSION")"
+if [ -d "$root" ]; then
+  _chpg_apply_env
+  [ -x "$root/bin/$program" ] && target="$root/bin/$program"
+fi
+
+# fallback: search PATH minus the shims dir (Homebrew/system Postgres)
+if [ -z "$target" ]; then
+  target="$(PATH="$(_chpg_path_without_shims)" command -v "$program" 2>/dev/null || true)"
+fi
+
+if [ -z "$target" ]; then
+  echo "chpg: $program: command not found" >&2
+  _chpg_not_found_hint "$program"
+  exit 127
+fi
+
+exec "$target" "$@"

@@ -3,7 +3,7 @@
 set -e
 
 CHPG_HOME_DIR="$HOME/.chpg"
-CHPG_RELEASE="0.1.2"
+CHPG_RELEASE="1.0.0"
 
 # make sure the bin path is in place
 
@@ -24,6 +24,10 @@ CHPG_RELEASE="0.1.2"
 # install in the bin path
 
       ln -sf "$CHPG_HOME_DIR/libexec/chpg" "$BIN_PATH"
+
+# generate shims for any installed Postgres.app versions (safe if none)
+
+      "$CHPG_HOME_DIR/libexec/chpg-reshim" || true
 
 # done!
 

@@ -11,12 +11,12 @@ $ chpg help
 
 ## Install
 
-Open a terminal and run this command ([view source](http://git.io/chpg--install)):
+Open a terminal and run this command ([view source](https://raw.githubusercontent.com/redding/chpg/main/install.sh)):
 
 (change PREFIX as needed; it defaults to `/usr/local`)
 
 ```
-$ curl -L http://git.io/chpg--install | PREFIX=/usr/local sh
+$ curl -L https://raw.githubusercontent.com/redding/chpg/main/install.sh | PREFIX=/usr/local sh
 ```
 
 ### Init
@@ -29,7 +29,7 @@ eval "$(chpg init)"
 
 ### Auto Mode
 
-(optional) If you want automatic handling, add the `--auto` flag to the init.  In additon to the normal init above, `$PROMPT_COMMAND` is updated to activate any new Postgres.app version as you change directories.  **Again, this is optional.**
+(optional) If you want automatic handling, add the `--auto` flag to the init.  In addition to the normal init above, `$PROMPT_COMMAND` is updated to activate any new Postgres.app version as you change directories.  **Again, this is optional.**
 
 ```bash
 eval "$(chpg init --auto)"
@@ -42,6 +42,12 @@ By default, chpg outputs a warning saying which version/source it activates. If 
 ```bash
 eval "$(chpg init --quiet)"
 ```
+
+## Shims
+
+`chpg` installs lightweight **shims** (in `$HOME/.chpg/shims`, added to your `PATH` by `chpg init`) for every executable across your installed Postgres.app versions. A shim resolves the correct version from the nearest `.chpg-version` at **run time**, so bare commands — `psql`, `pg_dump`, `createdb`, `pg_config`, … — use the right version in any shell, including non-interactive ones (scripts, cron, AI agents). No `chpg @` prefix required.
+
+Shims regenerate on install. Run `chpg reshim` after adding or removing a Postgres.app version. Use `chpg which COMMAND` to see the real path a command resolves to, and `chpg resolve` for the version that applies in the current directory.
 
 ## Usage
 
@@ -74,10 +80,10 @@ $ pg_dump --version # will use /Applications/Postgres.app/Contents/Versions/12/b
 
 ## Uninstall
 
-Open a terminal and run this command ([view source](http://git.io/chpg--uninstall)):
+Open a terminal and run this command ([view source](https://raw.githubusercontent.com/redding/chpg/main/uninstall.sh)):
 
 ```
-$ curl -L http://git.io/chpg--uninstall | sh
+$ curl -L https://raw.githubusercontent.com/redding/chpg/main/uninstall.sh | sh
 ```
 
 ## Contributing
